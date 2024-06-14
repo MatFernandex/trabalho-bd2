@@ -1,0 +1,57 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tb_fornecedor {
+  for_codigo                                         BigInt       @id(map: "tb_Fornecedor_pkey") @default(autoincrement())
+  for_descricao                                      String       @default("45") @db.VarChar
+  tb_produto_tb_produto_tb_fornecedorTotb_fornecedor tb_produto[] @relation("tb_produto_tb_fornecedorTotb_fornecedor")
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tb_funcionarios {
+  fun_codigo BigInt      @id @default(autoincrement())
+  fun_nome   String      @default("45") @db.VarChar
+  fun_cpf    String?     @default("45") @db.VarChar
+  fun_senha  String?     @default("50") @db.VarChar
+  fun_funcao String?     @default("50") @db.VarChar
+  tb_vendas  tb_vendas[]
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tb_itens {
+  ite_codigo                                 BigInt      @id @default(autoincrement())
+  ite_quantidade                             BigInt
+  ite_valor_parcial                          Float?
+  tb_produto                                 BigInt?
+  tb_vendas                                  BigInt?
+  tb_produto_tb_itens_tb_produtoTotb_produto tb_produto? @relation("tb_itens_tb_produtoTotb_produto", fields: [tb_produto], references: [pro_codigo], onDelete: NoAction, onUpdate: NoAction)
+  tb_vendas_tb_itens_tb_vendasTotb_vendas    tb_vendas?  @relation("tb_itens_tb_vendasTotb_vendas", fields: [tb_vendas], references: [ven_codigo], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tb_produto {
+  pro_codigo                                            BigInt         @id @default(autoincrement())
+  pro_descricao                                         String         @default("50") @db.VarChar
+  pro_valor                                             Float?         @default(50)
+  pro_quantidade                                        BigInt?        @default(40)
+  tb_fornecedor                                         BigInt?
+  tb_itens_tb_itens_tb_produtoTotb_produto              tb_itens[]     @relation("tb_itens_tb_produtoTotb_produto")
+  tb_fornecedor_tb_produto_tb_fornecedorTotb_fornecedor tb_fornecedor? @relation("tb_produto_tb_fornecedorTotb_fornecedor", fields: [tb_fornecedor], references: [for_codigo], onDelete: NoAction, onUpdate: NoAction)
+}
+
+/// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
+model tb_vendas {
+  ven_codigo                             BigInt           @id @default(autoincrement())
+  ven_horario                            DateTime         @default(now()) @db.Timestamptz(6)
+  ven_valor_total                        Float?           @default(40)
+  tb_funcionario                         BigInt?
+  tb_itens_tb_itens_tb_vendasTotb_vendas tb_itens[]       @relation("tb_itens_tb_vendasTotb_vendas")
+  tb_funcionarios                        tb_funcionarios? @relation(fields: [tb_funcionario], references: [fun_codigo], onDelete: NoAction, onUpdate: NoAction)
+}
