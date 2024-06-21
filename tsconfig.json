@@ -21,5 +21,6 @@
     "experimentalDecorators": true,
     "skipLibCheck": true,
     "forceConsistentCasingInFileNames": false
-  }
+  },
+  "exclude": ["client"]
 }
