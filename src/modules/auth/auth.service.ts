@@ -131,7 +131,7 @@ export class AuthService {
       data: {
         usu_nome: username,
         usu_senha: password,
-        usu_role: role,
+        usu_role: role ?? 'USUARIO',
       },
     })
 

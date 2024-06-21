@@ -1,12 +1,12 @@
 import { Role } from '@prisma/client'
 import { Transform, type TransformFnParams } from 'class-transformer'
-import { IsAlphanumeric, IsIn, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
+import { IsAlphanumeric, IsIn, IsNotEmpty, IsOptional, MaxLength, MinLength, ValidateIf } from 'class-validator'
 
 /** Transform field to lowercase */
 const lowerCase = ({ value }: TransformFnParams) => value.toLowerCase()
 
-/** Set default role to 'USUARIO' if not provided */
-const defaultRole = ({ value }: TransformFnParams) => (value ? value.toUpperCase() : 'USUARIO')
+/** Transform field to uppercase */
+const upperCase = ({ value }: TransformFnParams) => value.toUpperCase()
 
 export class RegisterPayload {
   @IsNotEmpty({
@@ -29,9 +29,11 @@ export class RegisterPayload {
   })
   readonly password: string
 
-  @Transform(defaultRole)
+  @IsOptional()
+  @ValidateIf((object, value) => value !== undefined)
+  @Transform(upperCase)
   @IsIn(['USUARIO', 'VENDEDOR'], {
     message: 'Role de usuário inválido',
   })
-  readonly role: Role
+  readonly role?: Role
 }
