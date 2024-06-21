@@ -66,4 +66,5 @@ model tb_vendas {
 enum Role {
   USUARIO
   ADMIN
+  VENDEDOR
 }
