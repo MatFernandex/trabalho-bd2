@@ -16,8 +16,8 @@ export class AuthController {
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() { username, password }: RegisterPayload): Promise<any> {
-    const data = await this.authService.register({ username, password })
+  async register(@Body() { username, password, role }: RegisterPayload): Promise<any> {
+    const data = await this.authService.register({ username, password, role })
     return { ...data }
   }
 }

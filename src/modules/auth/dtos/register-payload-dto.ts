@@ -1,8 +1,12 @@
+import { Role } from '@prisma/client'
 import { Transform, type TransformFnParams } from 'class-transformer'
-import { IsAlphanumeric, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
+import { IsAlphanumeric, IsIn, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
 
 /** Transform field to lowercase */
 const lowerCase = ({ value }: TransformFnParams) => value.toLowerCase()
+
+/** Transform field to uppercase */
+const upperCase = ({ value }: TransformFnParams) => value.toUpperCase()
 
 export class RegisterPayload {
   @IsNotEmpty({
@@ -24,4 +28,13 @@ export class RegisterPayload {
     message: 'A senha deve ter pelo menos 6 caracteres.',
   })
   readonly password: string
+
+  @IsNotEmpty({
+    message: 'Campo Obrigatório',
+  })
+  @Transform(upperCase)
+  @IsIn(['USUARIO', 'VENDEDOR'], {
+    message: 'Campo Inválido',
+  })
+  readonly role: Role
 }

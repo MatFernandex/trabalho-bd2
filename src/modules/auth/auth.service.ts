@@ -11,7 +11,7 @@ import { DatabaseConnectionFailException } from './exceptions/database-connectio
 import { InvalidUserOrPasswordException } from './exceptions/invalid-user-or-password-exception'
 import { UserAlreadyExistsException } from './exceptions/user-already-exists-exception'
 
-type UserPayload = LoginPayload & RegisterPayload
+type UserPayload = Pick<LoginPayload & RegisterPayload, 'username' | 'password'>
 
 @Injectable()
 export class AuthService {
@@ -120,7 +120,7 @@ export class AuthService {
     return { access_token: this.jwtService.sign(jwtPayload) }
   }
 
-  async register({ username, password }: UserPayload): Promise<JwtResponse> {
+  async register({ username, password, role }: UserPayload & RegisterPayload): Promise<JwtResponse> {
     const existingUserRecord = await this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } })
 
     if (existingUserRecord) {
@@ -131,6 +131,7 @@ export class AuthService {
       data: {
         usu_nome: username,
         usu_senha: password,
+        usu_role: role,
       },
     })
 
