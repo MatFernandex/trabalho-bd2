@@ -8,6 +8,8 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule)
   const config = app.get<ConfigService>(ConfigService)
 
+  app.enableCors()
+
   const logger = new Logger()
 
   // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
