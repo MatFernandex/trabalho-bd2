@@ -71,7 +71,7 @@ export class AuthService {
     return queryRows.length > 0 ? queryRows[0] : undefined
   }
 
-  private async createPgUser({ username, password }: UserPayload): Promise<void> {
+  private async createPgUser({ username, password, role }: UserPayload & Pick<RegisterPayload, 'role'>): Promise<void> {
     const pgUser = await this.findPgUserByUsername({ username })
 
     if (pgUser) {
@@ -84,21 +84,12 @@ export class AuthService {
     // Execute the SQL command to create the user
     await this.prisma.$executeRawUnsafe(createUserSql)
 
-    // Grant CONNECT on the database
-    const grantConnectSql = `GRANT CONNECT ON DATABASE postgres TO "${username}";`
-    await this.prisma.$executeRawUnsafe(grantConnectSql)
+    // Determine the group role based on the user's role
+    const groupRole = role === 'VENDEDOR' ? 'vendedor' : 'cliente'
 
-    // Grant USAGE on the schema
-    const grantUsageSql = `GRANT USAGE ON SCHEMA public TO "${username}";`
-    await this.prisma.$executeRawUnsafe(grantUsageSql)
-
-    // Grant SELECT on all tables in the schema
-    const grantSelectSql = `GRANT SELECT ON ALL TABLES IN SCHEMA public TO "${username}";`
-    await this.prisma.$executeRawUnsafe(grantSelectSql)
-
-    // Set the default privileges for future tables created in the schema
-    const setDefaultPrivilegesSql = `ALTER DEFAULT PRIVILEGES IN SCHEMA public GRANT SELECT ON TABLES TO "${username}";`
-    await this.prisma.$executeRawUnsafe(setDefaultPrivilegesSql)
+    // Grant the group role to the user
+    const grantGroupRoleSql = `GRANT "${groupRole}" TO "${username}";`
+    await this.prisma.$executeRawUnsafe(grantGroupRoleSql)
   }
 
   async login({ username, password }: UserPayload): Promise<JwtResponse> {
@@ -135,8 +126,8 @@ export class AuthService {
       },
     })
 
-    /** Creates the PG user in catalog with the same credentials */
-    await this.createPgUser({ username, password })
+    /** Creates the PG user in catalog with the same credentials and assigns group role based on user role */
+    await this.createPgUser({ username, password, role: role ?? 'USUARIO' })
 
     const jwtPayload: JwtPayload = { usu_codigo: Number(user.usu_codigo) }
 
