@@ -1,3 +1,4 @@
+import { Form } from '@/components/Login/Form'
 import { type Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -5,5 +6,5 @@ export const metadata: Metadata = {
 }
 
 export default function Login() {
-  return <></>
+  return <Form />
 }
