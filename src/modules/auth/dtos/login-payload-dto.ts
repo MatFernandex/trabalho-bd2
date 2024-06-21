@@ -1,5 +1,5 @@
 import { Transform, type TransformFnParams } from 'class-transformer'
-import { IsAlphanumeric, IsNotEmpty, MaxLength, MinLength } from 'class-validator'
+import { IsAlphanumeric, IsNotEmpty } from 'class-validator'
 
 /** Transform field to lowercase */
 const lowerCase = ({ value }: TransformFnParams) => value.toLowerCase()
@@ -16,12 +16,6 @@ export class LoginPayload {
 
   @IsNotEmpty({
     message: 'A senha é obrigatória.',
-  })
-  @MaxLength(50, {
-    message: 'A senha não pode ter mais que 50 caracteres.',
-  })
-  @MinLength(6, {
-    message: 'A senha deve ter pelo menos 6 caracteres.',
   })
   readonly password: string
 }

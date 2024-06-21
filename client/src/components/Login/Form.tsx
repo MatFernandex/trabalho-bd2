@@ -21,10 +21,7 @@ const validationSchema = Yup.object({
     .required('O nome de usuário é obrigatório.')
     .matches(/^[a-zA-Z0-9]*$/, 'O nome de usuário deve conter apenas caracteres alfanuméricos.')
     .transform((value) => value.toLowerCase()),
-  password: Yup.string()
-    .required('A senha é obrigatória.')
-    .max(50, 'A senha não pode ter mais que 50 caracteres.')
-    .min(6, 'A senha deve ter pelo menos 6 caracteres.'),
+  password: Yup.string().required('A senha é obrigatória.'),
 })
 
 const FormInput: FC<FormInputProps> = ({ id, label, formik, type = 'text' }) => (
