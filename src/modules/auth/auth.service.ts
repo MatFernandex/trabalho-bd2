@@ -1,11 +1,12 @@
 import { PrismaService } from '@/database/prisma.service'
 import { Injectable } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
+import { JwtService } from '@nestjs/jwt'
+import { type JwtPayload } from './dtos/jwt-payload-dto'
+import { type JwtResponse } from './dtos/jwt-response-dto'
 import { type LoginPayload } from './dtos/login-payload-dto'
-import { type LoginResponse } from './dtos/login-response-dto'
 import { type PgUserFromCatalog } from './dtos/pg-user-from-catalog-dto'
 import { type RegisterPayload } from './dtos/register-payload-dto'
-import { type RegisterResponse } from './dtos/register-response-dto'
 import { DatabaseConnectionFailException } from './exceptions/database-connection-fail-exception'
 import { InvalidUserOrPasswordException } from './exceptions/invalid-user-or-password-exception'
 import { UserAlreadyExistsException } from './exceptions/user-already-exists-exception'
@@ -17,6 +18,7 @@ export class AuthService {
   constructor(
     private prisma: PrismaService,
     private readonly config: ConfigService,
+    private readonly jwtService: JwtService,
   ) {}
 
   private createDatabaseUrlFromPayload({ username, password }: UserPayload): string {
@@ -99,7 +101,7 @@ export class AuthService {
     await this.prisma.$executeRawUnsafe(setDefaultPrivilegesSql)
   }
 
-  async login({ username, password }: UserPayload): Promise<LoginResponse> {
+  async login({ username, password }: UserPayload): Promise<JwtResponse> {
     const user = await this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } })
 
     if (!user) {
@@ -113,14 +115,12 @@ export class AuthService {
     /** Updates the prismaService credentials */
     await this.loginPrismaService({ username, password })
 
-    return {
-      usu_codigo: Number(user.usu_codigo),
-      usu_nome: user.usu_nome,
-      usu_role: user.usu_role,
-    }
+    const jwtPayload: JwtPayload = { usu_codigo: Number(user.usu_codigo) }
+
+    return { access_token: this.jwtService.sign(jwtPayload) }
   }
 
-  async register({ username, password }: UserPayload): Promise<RegisterResponse> {
+  async register({ username, password }: UserPayload): Promise<JwtResponse> {
     const existingUserRecord = await this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } })
 
     if (existingUserRecord) {
@@ -137,10 +137,8 @@ export class AuthService {
     /** Creates the PG user in catalog with the same credentials */
     await this.createPgUser({ username, password })
 
-    return {
-      usu_codigo: Number(user.usu_codigo),
-      usu_nome: user.usu_nome,
-      usu_role: user.usu_role,
-    }
+    const jwtPayload: JwtPayload = { usu_codigo: Number(user.usu_codigo) }
+
+    return { access_token: this.jwtService.sign(jwtPayload) }
   }
 }
