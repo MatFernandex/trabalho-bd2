@@ -18,6 +18,7 @@ model tb_usuarios {
   usu_codigo BigInt @id @default(autoincrement())
   usu_nome   String @default("45") @db.VarChar
   usu_senha  String @default("50") @db.VarChar
+  usu_role   Role   @default(USUARIO)
 }
 
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
@@ -60,4 +61,9 @@ model tb_vendas {
   tb_funcionario                         BigInt?
   tb_itens_tb_itens_tb_vendasTotb_vendas tb_itens[]       @relation("tb_itens_tb_vendasTotb_vendas")
   tb_funcionarios                        tb_funcionarios? @relation(fields: [tb_funcionario], references: [fun_codigo], onDelete: NoAction, onUpdate: NoAction)
+}
+
+enum Role {
+  USUARIO
+  ADMIN
 }
