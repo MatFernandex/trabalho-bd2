@@ -1,4 +1,4 @@
-import { RegisterForm } from '@/components/RegisterForm'
+import { Form } from '@/components/Register/Form'
 import { type Metadata } from 'next'
 
 export const metadata: Metadata = {
@@ -6,5 +6,5 @@ export const metadata: Metadata = {
 }
 
 export default function Register() {
-  return <RegisterForm />
+  return <Form />
 }

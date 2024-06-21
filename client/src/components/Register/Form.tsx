@@ -73,7 +73,7 @@ const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = (
   )
 }
 
-const RegisterForm = () => {
+const Form = () => {
   const onSubmit = useCallback((values: FormValues) => {
     console.log(values)
   }, [])
@@ -117,4 +117,4 @@ const RegisterForm = () => {
   )
 }
 
-export { RegisterForm }
+export { Form }
