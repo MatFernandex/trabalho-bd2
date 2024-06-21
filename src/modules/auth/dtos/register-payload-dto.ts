@@ -5,8 +5,8 @@ import { IsAlphanumeric, IsIn, IsNotEmpty, MaxLength, MinLength } from 'class-va
 /** Transform field to lowercase */
 const lowerCase = ({ value }: TransformFnParams) => value.toLowerCase()
 
-/** Transform field to uppercase */
-const upperCase = ({ value }: TransformFnParams) => value.toUpperCase()
+/** Set default role to 'USUARIO' if not provided */
+const defaultRole = ({ value }: TransformFnParams) => (value ? value.toUpperCase() : 'USUARIO')
 
 export class RegisterPayload {
   @IsNotEmpty({
@@ -29,12 +29,9 @@ export class RegisterPayload {
   })
   readonly password: string
 
-  @IsNotEmpty({
-    message: 'Campo Obrigatório',
-  })
-  @Transform(upperCase)
+  @Transform(defaultRole)
   @IsIn(['USUARIO', 'VENDEDOR'], {
-    message: 'Campo Inválido',
+    message: 'Role de usuário inválido',
   })
   readonly role: Role
 }
