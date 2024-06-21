@@ -1,6 +1,10 @@
 {
   "extends": "next/core-web-vitals",
+  "parserOptions": {
+    "project": "./client/tsconfig.json"
+  },
   "rules": {
-    "@typescript-eslint/triple-slash-reference": "off"
+    "@typescript-eslint/triple-slash-reference": "off",
+    "@typescript-eslint/no-misused-promises": "off"
   }
 }
