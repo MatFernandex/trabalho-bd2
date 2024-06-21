@@ -14,6 +14,12 @@ model tb_fornecedor {
   tb_produto_tb_produto_tb_fornecedorTotb_fornecedor tb_produto[] @relation("tb_produto_tb_fornecedorTotb_fornecedor")
 }
 
+model tb_usuarios {
+  usu_codigo BigInt @id @default(autoincrement())
+  usu_nome   String @default("45") @db.VarChar
+  usu_senha  String @default("50") @db.VarChar
+}
+
 /// This model contains row level security and requires additional setup for migrations. Visit https://pris.ly/d/row-level-security for more info.
 model tb_funcionarios {
   fun_codigo BigInt      @id @default(autoincrement())
