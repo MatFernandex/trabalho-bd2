@@ -7,3 +7,4 @@
 .pnp.cjs
 .pnp.loader.mjs
 /coverage
+/client
