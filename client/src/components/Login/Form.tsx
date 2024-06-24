@@ -1,12 +1,16 @@
 'use client'
 
+import { Button } from '@/components/ui/button'
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useFormik } from 'formik'
+import { Handshake, User } from 'lucide-react'
 import { type FC, useCallback } from 'react'
 import * as Yup from 'yup'
 
 interface FormValues {
   username: string
   password: string
+  role: 'USUARIO' | 'VENDEDOR'
 }
 
 interface FormInputProps {
@@ -22,6 +26,7 @@ const validationSchema = Yup.object({
     .matches(/^[a-zA-Z0-9]*$/, 'O nome de usuário deve conter apenas caracteres alfanuméricos.')
     .transform((value) => value.toLowerCase()),
   password: Yup.string().required('A senha é obrigatória.'),
+  role: Yup.string().uppercase().oneOf(['USUARIO', 'VENDEDOR'], 'Campo Inválido').required('Campo Obrigatório'),
 })
 
 const FormInput: FC<FormInputProps> = ({ id, label, formik, type = 'text' }) => (
@@ -43,6 +48,34 @@ const FormInput: FC<FormInputProps> = ({ id, label, formik, type = 'text' }) => 
   </>
 )
 
+const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = ({ formik }) => {
+  /** Callbacks */
+  const selectUsuario = useCallback(async () => {
+    formik.resetForm()
+    await formik.setFieldValue('role', 'USUARIO')
+  }, [formik])
+  const selectVendedor = useCallback(async () => {
+    formik.resetForm()
+    await formik.setFieldValue('role', 'VENDEDOR')
+  }, [formik])
+
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant="outline">{formik.values.role || 'USUARIO'}</Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent>
+        <DropdownMenuItem onSelect={selectUsuario}>
+          <User className="mr-2 h-4 w-4" /> USUARIO
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={selectVendedor}>
+          <Handshake className="mr-2 h-4 w-4" /> VENDEDOR
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  )
+}
+
 const Form = () => {
   const onSubmit = useCallback((values: FormValues) => {
     console.log(values)
@@ -52,6 +85,7 @@ const Form = () => {
     initialValues: {
       username: '',
       password: '',
+      role: 'USUARIO',
     },
     validationSchema,
     onSubmit,
@@ -65,6 +99,7 @@ const Form = () => {
         <div className="flex flex-col gap-y-2">
           <FormInput id="username" label="Nome de Usuário" formik={formik} />
           <FormInput id="password" label="Senha" formik={formik} type="password" />
+          <RoleDropdown formik={formik} />
         </div>
         <div className="flex items-center justify-between mt-8 mb-2">
           <button

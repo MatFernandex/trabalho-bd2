@@ -11,6 +11,8 @@ interface FormValues {
   username: string
   password: string
   role: 'USUARIO' | 'VENDEDOR'
+  cpf?: string
+  funcao?: string
 }
 
 interface FormInputProps {
@@ -20,7 +22,7 @@ interface FormInputProps {
   type?: 'text' | 'password'
 }
 
-const validationSchema = Yup.object({
+const validationSchema = Yup.object().shape({
   username: Yup.string()
     .required('O nome de usuário é obrigatório.')
     .matches(/^[a-zA-Z0-9]*$/, 'O nome de usuário deve conter apenas caracteres alfanuméricos.')
@@ -30,6 +32,16 @@ const validationSchema = Yup.object({
     .max(50, 'A senha não pode ter mais que 50 caracteres.')
     .min(6, 'A senha deve ter pelo menos 6 caracteres.'),
   role: Yup.string().uppercase().oneOf(['USUARIO', 'VENDEDOR'], 'Campo Inválido').required('Campo Obrigatório'),
+  cpf: Yup.string().when('role', (role, schema) =>
+    role
+      ? schema
+          .required('CPF é obrigatório para VENDEDOR.')
+          .matches(/^\d{3}\.\d{3}\.\d{3}\-\d{2}$/, 'CPF deve estar no formato XXX.XXX.XXX-XX.')
+      : schema.notRequired(),
+  ),
+  funcao: Yup.string().when('role', (role, schema) =>
+    role ? schema.required('Função é obrigatória para VENDEDOR.') : schema.notRequired(),
+  ),
 })
 
 const FormInput: FC<FormInputProps> = ({ id, label, formik, type = 'text' }) => (
@@ -53,8 +65,14 @@ const FormInput: FC<FormInputProps> = ({ id, label, formik, type = 'text' }) => 
 
 const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = ({ formik }) => {
   /** Callbacks */
-  const selectUsuario = useCallback(async () => await formik.setFieldValue('role', 'USUARIO'), [formik])
-  const selectVendedor = useCallback(async () => await formik.setFieldValue('role', 'VENDEDOR'), [formik])
+  const selectUsuario = useCallback(async () => {
+    formik.resetForm()
+    await formik.setFieldValue('role', 'USUARIO')
+  }, [formik])
+  const selectVendedor = useCallback(async () => {
+    formik.resetForm()
+    await formik.setFieldValue('role', 'VENDEDOR')
+  }, [formik])
 
   return (
     <DropdownMenu>
@@ -83,6 +101,8 @@ const Form = () => {
       username: '',
       password: '',
       role: 'USUARIO',
+      cpf: undefined,
+      funcao: undefined,
     },
     validationSchema,
     onSubmit,
@@ -94,8 +114,10 @@ const Form = () => {
       <p className="mb-4 text-gray-600">Crie sua conta. É grátis e leva apenas um minuto.</p>
       <form onSubmit={formik.handleSubmit} className="w-full max-w-xs">
         <div className="flex flex-col gap-y-2">
+          {formik.values.role === 'VENDEDOR' && <FormInput id="cpf" label="CPF" formik={formik} type="text" />}
           <FormInput id="username" label="Nome de Usuário" formik={formik} />
           <FormInput id="password" label="Senha" formik={formik} type="password" />
+          {formik.values.role === 'VENDEDOR' && <FormInput id="funcao" label="Função" formik={formik} type="text" />}
           <RoleDropdown formik={formik} />
         </div>
         <div className="flex items-center justify-between mt-8 mb-2">
