@@ -28,6 +28,7 @@ export const useAuth = () => {
       console.log(data)
       toast('Login realizado com sucesso!', { type: 'success' })
 
+      localStorage.setItem('access_token', JSON.stringify(data.access_token))
       setIsLoading(false)
       return data
     } catch (error) {
@@ -48,6 +49,7 @@ export const useAuth = () => {
       console.log(data)
       toast('Registro realizado com sucesso!', { type: 'success' })
 
+      localStorage.setItem('access_token', JSON.stringify(data.access_token))
       setIsLoading(false)
       return data
     } catch (error) {

@@ -78,10 +78,12 @@ const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = (
 }
 
 const Form = () => {
-  const { login, isLoading } = useAuth()
+  const { login } = useAuth()
 
   const onSubmit = useCallback(async (values: FormValues) => {
     await login(values)
+    /** Redirects back to home */
+    window.location.href = '/'
   }, [])
 
   const formik = useFormik<FormValues>({
