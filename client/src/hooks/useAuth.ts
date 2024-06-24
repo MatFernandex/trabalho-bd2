@@ -1,5 +1,6 @@
 import api from '@/services/api-client'
 import { useState } from 'react'
+import { toast } from 'react-toastify'
 
 interface AuthParams {
   username: string
@@ -25,12 +26,15 @@ export const useAuth = () => {
       const { data } = await api.post('/auth/login', params)
 
       console.log(data)
+      toast('Login realizado com sucesso!', { type: 'success' })
 
       setIsLoading(false)
       return data
     } catch (error) {
       setError(error)
       setIsLoading(false)
+
+      toast('Erro ao realizar login. Por favor, tente novamente.', { type: 'error' })
       throw error
     }
   }
@@ -42,12 +46,15 @@ export const useAuth = () => {
       const { data } = await api.post('/auth/register', params)
 
       console.log(data)
+      toast('Registro realizado com sucesso!', { type: 'success' })
 
       setIsLoading(false)
       return data
     } catch (error) {
       setError(error)
       setIsLoading(false)
+
+      toast('Erro ao realizar registro. Por favor, tente novamente.', { type: 'error' })
       throw error
     }
   }
