@@ -1,6 +1,15 @@
 import { Role } from '@prisma/client'
 import { Transform, type TransformFnParams } from 'class-transformer'
-import { IsAlphanumeric, IsIn, IsNotEmpty, IsOptional, MaxLength, MinLength, ValidateIf } from 'class-validator'
+import {
+  IsAlphanumeric,
+  IsIn,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  MaxLength,
+  MinLength,
+  ValidateIf,
+} from 'class-validator'
 
 /** Transform field to lowercase */
 const lowerCase = ({ value }: TransformFnParams) => value.toLowerCase()
@@ -36,4 +45,18 @@ export class RegisterPayload {
     message: 'Role de usuário inválido',
   })
   readonly role?: Role
+
+  @IsOptional()
+  @ValidateIf((object) => object.role === 'VENDEDOR')
+  @IsString({
+    message: 'O CPF é obrigatório para o role VENDEDOR.',
+  })
+  readonly cpf?: string
+
+  @IsOptional()
+  @ValidateIf((object) => object.role === 'VENDEDOR')
+  @IsString({
+    message: 'A função é obrigatória para o role VENDEDOR.',
+  })
+  readonly funcao?: string
 }

@@ -1,5 +1,5 @@
 import { PrismaService } from '@/database/prisma.service'
-import { Injectable } from '@nestjs/common'
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common'
 import { ConfigService } from '@nestjs/config'
 import { JwtService } from '@nestjs/jwt'
 import { type JwtPayload } from './dtos/jwt-payload-dto'
@@ -7,9 +7,6 @@ import { type JwtResponse } from './dtos/jwt-response-dto'
 import { type LoginPayload } from './dtos/login-payload-dto'
 import { type PgUserFromCatalog } from './dtos/pg-user-from-catalog-dto'
 import { type RegisterPayload } from './dtos/register-payload-dto'
-import { DatabaseConnectionFailException } from './exceptions/database-connection-fail-exception'
-import { InvalidUserOrPasswordException } from './exceptions/invalid-user-or-password-exception'
-import { UserAlreadyExistsException } from './exceptions/user-already-exists-exception'
 
 type UserPayload = Pick<LoginPayload & RegisterPayload, 'username' | 'password'>
 
@@ -59,7 +56,7 @@ export class AuthService {
 
       return this.prisma
     } catch (error) {
-      throw new DatabaseConnectionFailException('Falha ao conectar ao banco de dados.')
+      throw new InternalServerErrorException('Falha ao conectar ao banco de dados.')
     }
   }
 
@@ -75,7 +72,7 @@ export class AuthService {
     const pgUser = await this.findPgUserByUsername({ username })
 
     if (pgUser) {
-      throw new UserAlreadyExistsException(`Usuário "${username}" já existe.`)
+      throw new BadRequestException(`Usuário "${username}" já existe.`)
     }
 
     // SQL command to create a new PostgreSQL user
@@ -92,44 +89,87 @@ export class AuthService {
     await this.prisma.$executeRawUnsafe(grantGroupRoleSql)
   }
 
-  async login({ username, password }: UserPayload): Promise<JwtResponse> {
-    const user = await this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } })
+  async login({ username, password, role }: UserPayload & LoginPayload): Promise<JwtResponse> {
+    let user
+    let jwtPayload: JwtPayload
 
-    if (!user) {
-      throw new InvalidUserOrPasswordException('Usuário ou senha inválidos.')
-    }
+    if (role === 'VENDEDOR') {
+      user = await this.prisma.tb_funcionarios.findFirst({ where: { fun_nome: username } })
 
-    if (user.usu_senha !== password) {
-      throw new InvalidUserOrPasswordException('Usuário ou senha inválidos.')
+      if (!user) {
+        throw new BadRequestException('Funcionário ou senha inválidos.')
+      }
+
+      if (user.fun_senha !== password) {
+        throw new BadRequestException('Funcionário ou senha inválidos.')
+      }
+
+      jwtPayload = { codigo: Number(user.fun_codigo), role: 'VENDEDOR' }
+    } else {
+      user = await this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } })
+
+      if (!user) {
+        throw new BadRequestException('Usuário ou senha inválidos.')
+      }
+
+      if (user.usu_senha !== password) {
+        throw new BadRequestException('Usuário ou senha inválidos.')
+      }
+
+      jwtPayload = { codigo: Number(user.usu_codigo), role: user.usu_role }
     }
 
     /** Updates the prismaService credentials */
     await this.loginPrismaService({ username, password })
 
-    const jwtPayload: JwtPayload = { usu_codigo: Number(user.usu_codigo) }
-
     return { access_token: this.jwtService.sign(jwtPayload) }
   }
 
-  async register({ username, password, role }: UserPayload & RegisterPayload): Promise<JwtResponse> {
-    const existingUserRecord = await this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } })
-
-    if (existingUserRecord) {
-      throw new UserAlreadyExistsException(`Usuário "${username}" já existe.`)
+  async register({ username, password, cpf, funcao, role }: UserPayload & RegisterPayload): Promise<JwtResponse> {
+    // Validate required fields for VENDEDOR role
+    if (role === 'VENDEDOR' && (!cpf || !funcao)) {
+      throw new BadRequestException('O CPF e a função são obrigatórios para o role VENDEDOR.')
     }
 
-    const user = await this.prisma.tb_usuarios.create({
-      data: {
-        usu_nome: username,
-        usu_senha: password,
-        usu_role: role ?? 'USUARIO',
-      },
-    })
+    // Check if username already exists in the respective table based on role
+    const existingRecord = await (role === 'VENDEDOR'
+      ? this.prisma.tb_funcionarios.findFirst({ where: { fun_nome: username } })
+      : this.prisma.tb_usuarios.findFirst({ where: { usu_nome: username } }))
 
-    /** Creates the PG user in catalog with the same credentials and assigns group role based on user role */
-    await this.createPgUser({ username, password, role: role ?? 'USUARIO' })
+    if (existingRecord) {
+      throw new BadRequestException(`${role === 'VENDEDOR' ? 'Funcionario' : 'Usuário'} "${username}" já existe.`)
+    }
 
-    const jwtPayload: JwtPayload = { usu_codigo: Number(user.usu_codigo) }
+    // Create new record in the respective table based on role
+    const newRecord =
+      role === 'VENDEDOR'
+        ? await this.prisma.tb_funcionarios.create({
+            data: {
+              fun_nome: username,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              fun_cpf: cpf!,
+              fun_senha: password,
+              // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+              fun_funcao: funcao!,
+            },
+          })
+        : await this.prisma.tb_usuarios.create({
+            data: {
+              usu_nome: username,
+              usu_senha: password,
+              usu_role: 'USUARIO',
+            },
+          })
+
+    // Create the PG user in catalog with the same credentials and assigns group role based on user role
+    await this.createPgUser({ username, password, role })
+
+    // Prepare JWT payload and return JWT response
+    const jwtPayload: JwtPayload = {
+      // @ts-expect-error - The role is always 'VENDEDOR' when creating a new VENDEDOR record
+      codigo: Number(role === 'VENDEDOR' ? newRecord.fun_codigo : newRecord.usu_codigo),
+      role: role === 'VENDEDOR' ? 'VENDEDOR' : 'USUARIO',
+    }
 
     return { access_token: this.jwtService.sign(jwtPayload) }
   }

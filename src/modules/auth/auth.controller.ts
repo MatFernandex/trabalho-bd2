@@ -9,15 +9,15 @@ export class AuthController {
 
   @Post('login')
   @HttpCode(HttpStatus.OK)
-  async login(@Body() { username, password }: LoginPayload): Promise<any> {
-    const data = await this.authService.login({ username, password })
+  async login(@Body() { username, password, role }: LoginPayload): Promise<any> {
+    const data = await this.authService.login({ username, password, role })
     return { ...data }
   }
 
   @Post('register')
   @HttpCode(HttpStatus.CREATED)
-  async register(@Body() { username, password, role }: RegisterPayload): Promise<any> {
-    const data = await this.authService.register({ username, password, role })
+  async register(@Body() { username, password, role, cpf, funcao }: RegisterPayload): Promise<any> {
+    const data = await this.authService.register({ username, password, role, cpf, funcao })
     return { ...data }
   }
 }

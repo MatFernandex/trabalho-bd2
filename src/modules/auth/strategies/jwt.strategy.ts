@@ -1,9 +1,9 @@
 import { PrismaService } from '@/database/prisma.service'
-import { Injectable } from '@nestjs/common'
+import { Injectable, NotFoundException } from '@nestjs/common'
 import { PassportStrategy } from '@nestjs/passport'
+import { type tb_funcionarios, type tb_usuarios } from '@prisma/client'
 import { ExtractJwt, Strategy } from 'passport-jwt'
 import { type JwtPayload } from '../dtos/jwt-payload-dto'
-import { UserNotFoundException } from '../exceptions/user-not-found-exception'
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
@@ -15,13 +15,31 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     })
   }
 
-  async validate(payload: JwtPayload): Promise<any> {
-    const user = await this.prismaService.tb_usuarios.findUnique({ where: { usu_codigo: Number(payload.usu_codigo) } })
+  private async validateUsuario(payload: JwtPayload): Promise<tb_usuarios> {
+    const usuario = await this.prismaService.tb_usuarios.findUnique({
+      where: { usu_codigo: payload.codigo },
+    })
 
-    if (!user) {
-      throw new UserNotFoundException('Usuário não encontrado.')
+    if (!usuario) {
+      throw new NotFoundException('Usuário não encontrado')
     }
 
-    return user
+    return usuario
+  }
+
+  private async validateFuncionario(payload: JwtPayload): Promise<tb_funcionarios> {
+    const funcionario = await this.prismaService.tb_funcionarios.findUnique({
+      where: { fun_codigo: payload.codigo },
+    })
+
+    if (!funcionario) {
+      throw new NotFoundException('Funcionário não encontrado')
+    }
+
+    return funcionario
+  }
+
+  async validate(payload: JwtPayload): Promise<tb_usuarios | tb_funcionarios> {
+    return payload.role === 'VENDEDOR' ? await this.validateFuncionario(payload) : await this.validateUsuario(payload)
   }
 }

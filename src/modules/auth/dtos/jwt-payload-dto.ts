@@ -1,3 +1,6 @@
+import { type Role } from '@prisma/client'
+
 export class JwtPayload {
-  usu_codigo: number
+  codigo: number
+  role: Role
 }
