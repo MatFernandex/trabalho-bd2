@@ -2,6 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
+import { useAuth } from '@/hooks/useAuth'
 import { useFormik } from 'formik'
 import { Handshake, User } from 'lucide-react'
 import { type FC, useCallback } from 'react'
@@ -92,8 +93,10 @@ const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = (
 }
 
 const Form = () => {
-  const onSubmit = useCallback((values: FormValues) => {
-    console.log(values)
+  const { register, isLoading } = useAuth()
+
+  const onSubmit = useCallback(async (values: FormValues) => {
+    await register(values)
   }, [])
 
   const formik = useFormik<FormValues>({
