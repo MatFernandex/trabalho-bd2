@@ -32,11 +32,11 @@ export class ProductController {
   }
 
   @UseGuards(AuthGuard('jwt'))
-  @Post('buy')
-  async buyProduct(
-    @Body() buyProductDto: { employeeId: number; productIds: number[]; quantities: number[] },
+  @Post('sell')
+  async sellProduct(
+    @Body() sellProductDto: { employeeId: number; productIds: number[]; quantities: number[] },
   ): Promise<number> {
-    const { employeeId, productIds, quantities } = buyProductDto
-    return await this.productService.buyProduct(employeeId, productIds, quantities)
+    const { employeeId, productIds, quantities } = sellProductDto
+    return await this.productService.sellProduct(employeeId, productIds, quantities)
   }
 }

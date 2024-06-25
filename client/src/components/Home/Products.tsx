@@ -24,6 +24,7 @@ const Products = () => {
   const [error, setError] = useState<unknown | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [editingProduct, setEditingProduct] = useState<any>(null)
+  const [quantity, setQuantity] = useState<number>(0)
 
   const { access_token: token } = useAuthStore.getState()
 
@@ -78,6 +79,28 @@ const Products = () => {
     [token, getProducts],
   )
 
+  const handleSell = useCallback(
+    async (productId: number, quantity: number) => {
+      try {
+        await api.post(
+          '/products/sell',
+          { employeeId: user?.fun_codigo, productIds: [productId], quantities: [quantity] },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          },
+        )
+        toast('Produto vendido com sucesso!', { type: 'success' })
+        await getProducts()
+      } catch (error) {
+        console.error(error)
+        toast('Erro ao vender o produto.', { type: 'error' })
+      }
+    },
+    [user?.fun_codigo],
+  )
+
   useEffect(() => {
     void getProducts()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -125,10 +148,22 @@ const Products = () => {
                 <p className="text-gray-700 dark:text-gray-400 text-base">Quantidade: {product.pro_quantidade}</p>
                 <p className="text-gray-700 dark:text-gray-400 text-base">Fornecedor: {product.tb_fornecedor}</p>
               </CardContent>
-              <CardFooter>
-                <Button variant="secondary" onClick={() => handleEdit(product)}>
-                  Editar
-                </Button>
+              <CardFooter className="flex flex-col gap-y-2">
+                {user?.fun_codigo && (
+                  <input
+                    type="number"
+                    min="1"
+                    max={product.pro_quantidade}
+                    defaultValue="1"
+                    onChange={(e) => setQuantity(parseInt(e.target.value))}
+                  />
+                )}
+                <div className="flex flex-row gap-x-2">
+                  {user?.fun_codigo && <Button onClick={() => handleSell(product.pro_codigo, quantity)}>Vender</Button>}
+                  <Button variant="secondary" onClick={() => handleEdit(product)}>
+                    Editar
+                  </Button>
+                </div>
               </CardFooter>
             </>
           )}

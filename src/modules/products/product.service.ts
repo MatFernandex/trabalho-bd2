@@ -22,12 +22,12 @@ export class ProductService {
     return await this.prisma.tb_produto.delete({ where: { pro_codigo: id } })
   }
 
-  async buyProduct(employeeId: number, productIds: number[], quantities: number[]): Promise<number> {
+  async sellProduct(employeeId: number, productIds: number[], quantities: number[]): Promise<number> {
     // Convert arrays to PostgreSQL array literals
     const productIdsArrayLiteral = `{${productIds.join(',')}}`
     const quantitiesArrayLiteral = `{${quantities.join(',')}}`
 
-    // Execute the PostgreSQL function to buy the products
+    // Execute the PostgreSQL function to sell the product
     return await this.prisma.$queryRaw`
       SELECT realizar_venda_com_verificacao(
         ${employeeId},
