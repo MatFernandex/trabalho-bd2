@@ -3,9 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { useFormik } from 'formik'
 import { Handshake, User } from 'lucide-react'
-import { type FC, useCallback } from 'react'
+import { type FC, useCallback, useEffect } from 'react'
 import * as Yup from 'yup'
 
 interface FormValues {
@@ -80,11 +81,22 @@ const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = (
 const Form = () => {
   const { login } = useAuth()
 
-  const onSubmit = useCallback(async (values: FormValues) => {
-    await login(values)
-    /** Redirects back to home */
-    window.location.href = '/'
-  }, [])
+  const token = useAuthStore((state) => state.access_token)
+
+  useEffect(() => {
+    if (token) {
+      window.location.href = '/'
+    }
+  }, [token])
+
+  const onSubmit = useCallback(
+    async (values: FormValues) => {
+      await login(values)
+      /** Redirects back to home */
+      window.location.href = '/'
+    },
+    [login],
+  )
 
   const formik = useFormik<FormValues>({
     initialValues: {

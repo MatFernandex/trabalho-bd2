@@ -3,9 +3,10 @@
 import { Button } from '@/components/ui/button'
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu'
 import { useAuth } from '@/hooks/useAuth'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { useFormik } from 'formik'
 import { Handshake, User } from 'lucide-react'
-import { type FC, useCallback } from 'react'
+import { type FC, useCallback, useEffect } from 'react'
 import * as Yup from 'yup'
 
 interface FormValues {
@@ -37,7 +38,7 @@ const validationSchema = Yup.object().shape({
     role
       ? schema
           .required('CPF é obrigatório para VENDEDOR.')
-          .matches(/^\d{3}\.\d{3}\.\d{3}\-\d{2}$/, 'CPF deve estar no formato XXX.XXX.XXX-XX.')
+          .matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF deve estar no formato XXX.XXX.XXX-XX.')
       : schema.notRequired(),
   ),
   funcao: Yup.string().when('role', (role, schema) =>
@@ -95,11 +96,22 @@ const RoleDropdown: FC<{ formik: ReturnType<typeof useFormik<FormValues>> }> = (
 const Form = () => {
   const { register } = useAuth()
 
-  const onSubmit = useCallback(async (values: FormValues) => {
-    await register(values)
-    /** Redirects back to home */
-    window.location.href = '/'
-  }, [])
+  const token = useAuthStore((state) => state.access_token)
+
+  useEffect(() => {
+    if (token) {
+      window.location.href = '/'
+    }
+  }, [token])
+
+  const onSubmit = useCallback(
+    async (values: FormValues) => {
+      await register(values)
+      /** Redirects back to home */
+      window.location.href = '/'
+    },
+    [register],
+  )
 
   const formik = useFormik<FormValues>({
     initialValues: {

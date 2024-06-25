@@ -1,4 +1,5 @@
 import api from '@/services/api-client'
+import { useAuthStore } from '@/stores/useAuthStore'
 import { useState } from 'react'
 import { toast } from 'react-toastify'
 
@@ -28,7 +29,7 @@ export const useAuth = () => {
       console.log(data)
       toast('Login realizado com sucesso!', { type: 'success' })
 
-      localStorage.setItem('access_token', JSON.stringify(data.access_token))
+      useAuthStore.setState({ access_token: data.access_token })
       setIsLoading(false)
       return data
     } catch (error) {
@@ -40,6 +41,11 @@ export const useAuth = () => {
     }
   }
 
+  const logout = () => {
+    toast('Logout realizado com sucesso!', { type: 'success' })
+    useAuthStore.getState().cleanUp()
+  }
+
   const register = async (params: RegisterParams) => {
     setIsLoading(true)
     setError(null)
@@ -49,7 +55,7 @@ export const useAuth = () => {
       console.log(data)
       toast('Registro realizado com sucesso!', { type: 'success' })
 
-      localStorage.setItem('access_token', JSON.stringify(data.access_token))
+      useAuthStore.setState({ access_token: data.access_token })
       setIsLoading(false)
       return data
     } catch (error) {
@@ -61,5 +67,5 @@ export const useAuth = () => {
     }
   }
 
-  return { isLoading, error, login, register }
+  return { isLoading, error, login, logout, register }
 }
