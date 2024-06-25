@@ -24,7 +24,7 @@ const Products = () => {
   const [error, setError] = useState<unknown | null>(null)
   const [products, setProducts] = useState<Product[]>([])
   const [editingProduct, setEditingProduct] = useState<any>(null)
-  const [quantity, setQuantity] = useState<number>(0)
+  const [quantity, setQuantity] = useState<number>(1)
 
   const { access_token: token } = useAuthStore.getState()
 
