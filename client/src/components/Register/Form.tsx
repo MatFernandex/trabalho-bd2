@@ -34,16 +34,8 @@ const validationSchema = Yup.object().shape({
     .max(50, 'A senha não pode ter mais que 50 caracteres.')
     .min(6, 'A senha deve ter pelo menos 6 caracteres.'),
   role: Yup.string().uppercase().oneOf(['USUARIO', 'VENDEDOR'], 'Campo Inválido').required('Campo Obrigatório'),
-  cpf: Yup.string().when('role', (role, schema) =>
-    role
-      ? schema
-          .required('CPF é obrigatório para VENDEDOR.')
-          .matches(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF deve estar no formato XXX.XXX.XXX-XX.')
-      : schema.notRequired(),
-  ),
-  funcao: Yup.string().when('role', (role, schema) =>
-    role ? schema.required('Função é obrigatória para VENDEDOR.') : schema.notRequired(),
-  ),
+  cpf: Yup.string().optional(),
+  funcao: Yup.string().optional(),
 })
 
 const FormInput: FC<FormInputProps> = ({ id, label, formik, type = 'text' }) => (
@@ -142,7 +134,7 @@ const Form = () => {
             type="submit"
             className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline w-full"
           >
-            Enviar
+            Cadastrar
           </button>
         </div>
         <p className="text-center text-gray-600">
