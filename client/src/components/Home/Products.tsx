@@ -98,7 +98,7 @@ const Products = () => {
         toast('Erro ao vender o produto.', { type: 'error' })
       }
     },
-    [user?.fun_codigo],
+    [user?.fun_codigo, getProducts, token],
   )
 
   useEffect(() => {
@@ -159,7 +159,9 @@ const Products = () => {
                   />
                 )}
                 <div className="flex flex-row gap-x-2">
-                  {user?.fun_codigo && <Button onClick={() => handleSell(product.pro_codigo, quantity)}>Vender</Button>}
+                  {user?.fun_codigo && (
+                    <Button onClick={async () => await handleSell(product.pro_codigo, quantity)}>Vender</Button>
+                  )}
                   <Button variant="secondary" onClick={() => handleEdit(product)}>
                     Editar
                   </Button>
