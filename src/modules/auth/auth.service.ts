@@ -75,10 +75,11 @@ export class AuthService {
       throw new BadRequestException(`Usuário "${username}" já existe.`)
     }
 
-    // SQL command to create a new PostgreSQL user
-    const createUserSql = `CREATE USER "${username}" WITH PASSWORD '${password}';`
+    // HACK: This is a workaround to create a user with CREATEROLE permission
+    // Adjusted SQL command to include CREATEROLE permission
+    const createUserSql = `CREATE USER "${username}" WITH PASSWORD '${password}' CREATEROLE;`
 
-    // Execute the SQL command to create the user
+    // Execute the adjusted SQL command to create the user with CREATEROLE permission
     await this.prisma.$executeRawUnsafe(createUserSql)
 
     // Determine the group role based on the user's role
