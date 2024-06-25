@@ -30,4 +30,13 @@ export class ProductController {
   async deleteProduct(@Param('id') id: number): Promise<tb_produto> {
     return await this.productService.deleteProduct(id)
   }
+
+  @UseGuards(AuthGuard('jwt'))
+  @Post('buy')
+  async buyProduct(
+    @Body() buyProductDto: { employeeId: number; productIds: number[]; quantities: number[] },
+  ): Promise<number> {
+    const { employeeId, productIds, quantities } = buyProductDto
+    return await this.productService.buyProduct(employeeId, productIds, quantities)
+  }
 }
